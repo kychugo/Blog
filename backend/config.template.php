@@ -1,24 +1,38 @@
 <?php
+/**
+ * Database Configuration Template
+ * 
+ * IMPORTANT SECURITY NOTE:
+ * For production use, DO NOT commit database credentials to version control.
+ * 
+ * Instead:
+ * 1. Copy this file to config.php (already done)
+ * 2. Update the credentials in config.php with your actual database details
+ * 3. Add config.php to .gitignore if you want to keep it private
+ * 4. Or use environment variables (recommended for production)
+ */
+
 // Database Configuration
-define('DB_HOST', 'sql201.infinityfree.com');
-define('DB_USER', 'if0_39929369');
-define('DB_PASS', 'hfy23whc');
-define('DB_NAME', 'if0_39929369_blog');
+// CHANGE THESE VALUES FOR YOUR SETUP
+define('DB_HOST', 'your_mysql_host');
+define('DB_USER', 'your_mysql_username');
+define('DB_PASS', 'your_mysql_password');
+define('DB_NAME', 'your_database_name');
 define('DB_PORT', '3306');
 
-// CORS Headers - restrict to GitHub Pages in production
-// For production, change * to your GitHub Pages URL
+// CORS Headers - restrict to your frontend domain in production
+// Add your GitHub Pages URL here
 $allowedOrigins = [
-    'https://kychugo.github.io',
-    'http://localhost',
-    'https://localhost'
+    'https://yourusername.github.io',
+    'http://localhost',        // For local development
+    'https://localhost'         // For local development with HTTPS
 ];
 
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
 if (in_array($origin, $allowedOrigins)) {
     header('Access-Control-Allow-Origin: ' . $origin);
 } else {
-    // Allow all origins during development - CHANGE THIS IN PRODUCTION
+    // For development only - REMOVE THIS IN PRODUCTION
     header('Access-Control-Allow-Origin: *');
 }
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -32,7 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // JWT Secret Key
-define('JWT_SECRET', 'hugo_blog_secret_key_2024_change_this_in_production');
+// CHANGE THIS TO A RANDOM STRING IN PRODUCTION
+// Generate with: openssl rand -base64 32
+define('JWT_SECRET', 'change_this_to_a_random_secret_key_in_production');
 
 // Database Connection
 function getDBConnection() {
@@ -50,7 +66,7 @@ function getDBConnection() {
         return $conn;
     } catch(PDOException $e) {
         http_response_code(500);
-        echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+        echo json_encode(['error' => 'Database connection failed']);
         exit();
     }
 }

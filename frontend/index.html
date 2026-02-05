@@ -1073,7 +1073,7 @@
         }
 
         async function editPost(postId) {
-            const post = currentPosts.find(p => p.id === postId);
+            let post = currentPosts.find(p => p.id === postId);
             if (!post) {
                 // Fetch post if not in current list
                 const response = await fetch(`${API_URL}/posts?id=${postId}`);

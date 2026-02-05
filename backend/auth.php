@@ -22,8 +22,8 @@ if ($method === 'POST' && strpos($_SERVER['REQUEST_URI'], '/register') !== false
         exit();
     }
     
-    if (strlen($password) < 6) {
-        sendError('Password must be at least 6 characters');
+    if (strlen($password) < 8) {
+        sendError('Password must be at least 8 characters');
         exit();
     }
     

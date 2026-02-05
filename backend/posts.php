@@ -120,7 +120,8 @@ if ($method === 'POST') {
     
     try {
         $title = htmlspecialchars($input['title']);
-        $content = $input['content']; // Allow HTML in content
+        // Basic HTML sanitization - strip dangerous tags but allow safe formatting
+        $content = strip_tags($input['content'], '<p><br><b><strong><i><em><u><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><a>');
         $status = isset($input['status']) ? $input['status'] : 'published';
         $tags = isset($input['tags']) ? $input['tags'] : [];
         
@@ -187,7 +188,8 @@ if ($method === 'PUT') {
         
         if (isset($input['content'])) {
             $updates[] = "content = ?";
-            $params[] = $input['content'];
+            // Basic HTML sanitization - strip dangerous tags but allow safe formatting
+            $params[] = strip_tags($input['content'], '<p><br><b><strong><i><em><u><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><a>');
         }
         
         if (isset($input['status'])) {
