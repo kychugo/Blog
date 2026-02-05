@@ -66,9 +66,9 @@ if (strpos($path, 'auth/register') !== false || strpos($path, 'auth/login') !== 
             ]
         ],
         'database' => [
-            'host' => 'sql201.infinityfree.com',
-            'database' => 'if0_39929369_blog',
-            'setup' => 'Import database.sql to create tables'
+            'status' => 'MySQL database configured',
+            'setup' => 'Import database.sql to create tables',
+            'note' => 'Database credentials are in config.php'
         ]
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 }

@@ -86,6 +86,13 @@ This project consists of two separate parts:
 
 ## 🔐 Database Configuration
 
+**IMPORTANT NOTE**: The database credentials in this repository are for a free InfinityFree hosting account provided specifically for this project. In a production environment with sensitive data, you should:
+
+1. Use environment variables for credentials
+2. Never commit credentials to version control
+3. Use the provided `backend/config.template.php` as a guide
+
+**Current Configuration** (for this demo project):
 ```
 Host: sql201.infinityfree.com
 Port: 3306
@@ -93,6 +100,8 @@ Database: if0_39929369_blog
 Username: if0_39929369
 Password: hfy23whc
 ```
+
+For better security practices, see [SECURITY.md](SECURITY.md).
 
 ## 📋 API Endpoints
 

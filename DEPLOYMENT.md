@@ -12,10 +12,12 @@
 
 #### 1.1 Prepare Database
 
+**Note**: The database credentials for this project are already configured in `config.php`. In production, you should secure these credentials using environment variables (see SECURITY.md).
+
 1. Access your MySQL database using phpMyAdmin or command line:
    ```bash
    mysql -h sql201.infinityfree.com -u if0_39929369 -p if0_39929369_blog
-   # Password: hfy23whc
+   # Password: hfy23whc (from config.php)
    ```
 
 2. Import the database schema:

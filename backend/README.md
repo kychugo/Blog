@@ -14,14 +14,15 @@ Backend API for Hugo Development Log blog platform.
 
 ## Setup Instructions
 
+**Security Note**: This README shows the database credentials that are configured in `config.php`. For production deployments with sensitive data, follow the security guidelines in [SECURITY.md](../SECURITY.md) to protect your credentials.
+
 ### 1. Database Setup
 
 1. Import the database schema:
    ```bash
+   # Credentials are in backend/config.php
    mysql -h sql201.infinityfree.com -u if0_39929369 -p if0_39929369_blog < database.sql
    ```
-
-2. Enter password when prompted: `hfy23whc`
 
 ### 2. Upload to Server
 
