@@ -1,6 +1,8 @@
 # Hugo 開發日誌 | Hugo Development Log
 
-A modern, feature-rich blog platform with PHP backend and HTML frontend.
+A modern, feature-rich blog platform with **consolidated 2 PHP files + 1 HTML file** architecture.
+
+> **"if you only know how to use a hammer, everything looks like a nail"**
 
 ## 🌟 Features
 
@@ -30,59 +32,82 @@ A modern, feature-rich blog platform with PHP backend and HTML frontend.
 - ⚡ Fast and lightweight
 - 🎯 Smooth animations and transitions
 
-## 🏗️ Architecture
+## 🏗️ Simplified Architecture
 
-This project consists of two separate parts:
+**Consolidated Structure (2 PHP + 1 HTML):**
 
-### Backend (PHP)
-- **Location**: `/backend/`
-- **Hosting**: PHP web server at `hugow.wuaze.com`
-- **Database**: MySQL on InfinityFree
-- **Features**: RESTful API, authentication, CRUD operations
+```
+Blog/
+├── api.php          # All-in-one API endpoint handler (29KB)
+├── init.php         # Database initialization with embedded SQL (8KB)
+├── index.html       # Complete frontend application (54KB)
+└── .htaccess        # URL rewriting configuration
+```
 
-### Frontend (HTML)
-- **Location**: `/frontend/`
-- **Hosting**: GitHub Pages
-- **Technology**: Single HTML file with embedded CSS/JS
-- **Features**: SPA, responsive design, bilingual support
+### File Breakdown
+
+#### api.php (Backend)
+- All authentication endpoints (register, login, verify)
+- All post CRUD operations
+- Comments management
+- Likes system
+- Tags system
+- Admin panel endpoints
+- Database connection & security helpers
+- JWT-like token authentication
+
+#### init.php (Database Setup)
+- Embedded SQL schema for all 7 tables
+- Automatic table creation
+- Database verification
+- Setup status reporting
+- **Run once** to initialize the database
+
+#### index.html (Frontend)
+- Complete single-page application
+- All UI components and styling
+- Client-side routing
+- Bilingual support (繁體中文/English)
+- Responsive design
+- No external dependencies
 
 ## 🚀 Quick Start
 
-### Backend Setup
+### Step 1: Database Setup
 
-1. **Import database schema**:
-   ```bash
-   cd backend
-   mysql -h sql201.infinityfree.com -u if0_39929369 -p if0_39929369_blog < database.sql
-   # Password: hfy23whc
-   ```
+1. **Upload files to server**:
+   - Upload `api.php`, `init.php`, `index.html`, and `.htaccess` to `hugow.wuaze.com`
 
-2. **Upload to PHP server**:
-   - Upload all files in `/backend/` to `hugow.wuaze.com`
-   - Ensure `.htaccess` is uploaded for URL rewriting
+2. **Initialize database**:
+   - Visit: `https://hugow.wuaze.com/init.php`
+   - This will create all required database tables
+   - You should see success messages for all 7 tables
 
-3. **Test the API**:
-   - Visit: https://hugow.wuaze.com/
-   - You should see API documentation
+3. **Verify setup**:
+   - Visit: `https://hugow.wuaze.com/api.php`
+   - You should see the API documentation in JSON format
 
-### Frontend Setup
+### Step 2: Start Using
 
-1. **Deploy to GitHub Pages**:
-   - Push the repository to GitHub
-   - Enable GitHub Pages in repository settings
-   - Select the appropriate branch
+1. **Open the blog**:
+   - Visit: `https://hugow.wuaze.com/index.html`
+   - Or directly: `https://hugow.wuaze.com/`
 
-2. **Access your blog**:
-   - Visit: `https://{username}.github.io/{repo-name}/frontend/`
+2. **Register first account**:
+   - Click "登入 / Login" button
+   - Switch to Register tab
+   - Register with email and password
+   - First user automatically becomes Admin!
 
-3. **First User Registration**:
-   - Register the first account - it will automatically become admin
-   - Start creating posts!
+3. **Create your first post**:
+   - Click "新增文章 / Create Post"
+   - Write title and content
+   - Add tags (comma-separated)
+   - Click "發佈 / Publish"
 
-## 📖 Documentation
+## 📖 Alternative Deployment
 
-- [Backend Documentation](backend/README.md)
-- [Frontend Documentation](frontend/README.md)
+The `/backend/` and `/frontend/` folders contain the original modular structure for reference. The consolidated files in the root are production-ready.
 
 ## 🔐 Database Configuration
 
@@ -105,17 +130,21 @@ For better security practices, see [SECURITY.md](SECURITY.md).
 
 ## 📋 API Endpoints
 
+All endpoints are handled through `api.php`. The API automatically routes requests based on the URL path.
+
+**Base URL**: `https://hugow.wuaze.com/api.php`
+
 ### Authentication
-- `POST /auth/register` - Register new user
+- `POST /auth/register` - Register new user (first becomes admin)
 - `POST /auth/login` - Login with email/password
 - `GET /auth/verify` - Verify authentication token
 
 ### Posts
-- `GET /posts` - List all posts (with filters)
+- `GET /posts` - List all posts (supports filters: tag, year, month, search)
 - `GET /posts?id={id}` - Get single post
-- `POST /posts` - Create post (admin)
-- `PUT /posts` - Update post (admin)
-- `DELETE /posts?id={id}` - Delete post (admin)
+- `POST /posts` - Create post (admin only)
+- `PUT /posts` - Update post (admin only)
+- `DELETE /posts?id={id}` - Delete post (admin only)
 
 ### Comments
 - `GET /comments?post_id={id}` - Get post comments
@@ -134,6 +163,20 @@ For better security practices, see [SECURITY.md](SECURITY.md).
 - `DELETE /admin/users?id={id}` - Delete user
 - `GET /admin/view-logs` - View access logs
 - `GET /admin/stats` - Get platform statistics
+
+## 💾 Database Schema
+
+The database schema is embedded in `init.php` and includes 7 tables:
+
+1. **users** - User accounts with admin flag
+2. **posts** - Blog posts with metadata
+3. **tags** - Tag definitions
+4. **post_tags** - Post-tag relationships (junction table)
+5. **comments** - User comments on posts
+6. **likes** - Post like tracking
+7. **view_logs** - Post view analytics
+
+All tables are automatically created when you run `init.php` for the first time.
 
 ## 🎯 Key Features Explained
 
