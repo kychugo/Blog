@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugo 開發日誌 | Hugo Development Log</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ff88;
+            --secondary: #0066ff;
+            --dark: #0a0e27;
+            --darker: #060919;
+            --light: #ffffff;
+            --gray: #8892b0;
+            --border: #1e2a4a;
+            --hover: rgba(0, 255, 136, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--darker);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.05) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Header */
+        header {
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '{ }';
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 4px;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: var(--dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary);
+            color: var(--light);
+        }
+
+        .lang-switch {
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Quote section */
+        .quote-section {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.1) 0%, rgba(0, 255, 136, 0.1) 100%);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quote-section::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            font-size: 8rem;
+            color: rgba(0, 255, 136, 0.1);
+            font-family: Georgia, serif;
+        }
+
+        .quote-text {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Search and filters */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.7rem;
+            background: rgba(30, 42, 74, 0.5);
+            border: 1px solid var(--border);
+            color: var(--light);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Posts grid */
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .post-card {
+            background: rgba(30, 42, 74, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .post-title {
+            font-size: 1.3rem;
+            color: var(--light);
+            margin-bottom: 0.5rem;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .post-excerpt {
+            color: var(--gray);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 0.3rem 0.6rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 0.75rem;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .tag:hover {
+            background: var(--primary);
+            color: var(--dark);
+        }
+
+        .post-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            color: var(--gray);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .modal-close:hover {
+            color: var(--primary);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 0.7rem;
+            background: rgba(30, 42, 74, 0.5);
+            border: 1px solid var(--border);
+            color: var(--light);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Comments */
+        .comments-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .comment {
+            background: rgba(30, 42, 74, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .comment-author {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Admin panel */
+        .admin-panel {
+            background: rgba(30, 42, 74, 0.5);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .admin-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .admin-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.7rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Loading spinner */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray);
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+        }
+
+        /* Hide by default */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Like button */
+        .like-btn {
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .like-btn:hover {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .like-btn.liked {
+            color: var(--primary);
+        }
+
+        /* Success message */
+        .success-msg {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .error-msg {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <header>
+        <nav>
+            <a href="#" class="logo" id="homeLink">
+                <span id="navTitle">Hugo 開發日誌</span>
+            </a>
+            <div class="nav-links">
+                <span class="lang-switch" id="langSwitch">English / 繁體中文</span>
+                <button class="btn" id="loginBtn">登入</button>
+                <button class="btn btn-secondary hidden" id="logoutBtn">登出</button>
+                <button class="btn hidden" id="adminBtn">管理</button>
+                <button class="btn hidden" id="createPostBtn">發布文章</button>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Quote Section -->
+        <div class="quote-section">
+            <p class="quote-text">"if you only know how to use a hammer, everything looks like a nail"</p>
+        </div>
+
+        <!-- Main View -->
+        <div id="mainView">
+            <!-- Search and Filters -->
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="搜尋文章...">
+                </div>
+                <select id="tagFilter">
+                    <option value="">所有標籤</option>
+                </select>
+                <select id="yearFilter">
+                    <option value="">所有年份</option>
+                </select>
+                <select id="monthFilter">
+                    <option value="">所有月份</option>
+                </select>
+            </div>
+
+            <!-- Posts Grid -->
+            <div id="postsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>載入中...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin View -->
+        <div id="adminView" class="hidden">
+            <div class="admin-panel">
+                <h2 id="adminTitle">管理面板</h2>
+                <div class="admin-tabs">
+                    <div class="admin-tab active" data-tab="stats">統計</div>
+                    <div class="admin-tab" data-tab="users">用戶管理</div>
+                    <div class="admin-tab" data-tab="posts">文章管理</div>
+                    <div class="admin-tab" data-tab="logs">查看記錄</div>
+                </div>
+                <div id="adminContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login/Register Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+            <h2 id="authTitle">登入</h2>
+            <div id="authMessage"></div>
+            <form id="authForm">
+                <div class="form-group hidden" id="usernameGroup">
+                    <label id="usernameLabel">用戶名稱</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label id="emailLabel">電郵</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label id="passwordLabel">密碼</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn" id="authSubmit">登入</button>
+                <button type="button" class="btn btn-secondary" id="authToggle">還沒有帳號？註冊</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('postModal')">&times;</button>
+            <div id="postDetail"></div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Post Modal -->
+    <div id="createPostModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('createPostModal')">&times;</button>
+            <h2 id="createPostTitle">發布文章</h2>
+            <div id="createPostMessage"></div>
+            <form id="createPostForm">
+                <input type="hidden" id="editPostId">
+                <div class="form-group">
+                    <label id="postTitleLabel">標題</label>
+                    <input type="text" id="postTitle" required>
+                </div>
+                <div class="form-group">
+                    <label id="postContentLabel">內容</label>
+                    <textarea id="postContent" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label id="postTagsLabel">標籤 (用逗號分隔)</label>
+                    <input type="text" id="postTags" placeholder="JavaScript, React, Web">
+                </div>
+                <button type="submit" class="btn" id="submitPost">發布</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'https://hugow.wuaze.com';
+        
+        // State
+        let currentUser = null;
+        let currentLang = 'zh';
+        let currentPosts = [];
+        let allTags = [];
+        let isLoginMode = true;
+
+        // Translations
+        const translations = {
+            zh: {
+                navTitle: 'Hugo 開發日誌',
+                login: '登入',
+                logout: '登出',
+                admin: '管理',
+                createPost: '發布文章',
+                search: '搜尋文章...',
+                allTags: '所有標籤',
+                allYears: '所有年份',
+                allMonths: '所有月份',
+                loading: '載入中...',
+                loginTitle: '登入',
+                registerTitle: '註冊',
+                username: '用戶名稱',
+                email: '電郵',
+                password: '密碼',
+                noAccount: '還沒有帳號？註冊',
+                haveAccount: '已有帳號？登入',
+                adminPanel: '管理面板',
+                stats: '統計',
+                users: '用戶管理',
+                posts: '文章管理',
+                logs: '查看記錄',
+                createPostTitle: '發布文章',
+                editPostTitle: '編輯文章',
+                title: '標題',
+                content: '內容',
+                tags: '標籤 (用逗號分隔)',
+                publish: '發布',
+                update: '更新',
+                views: '瀏覽',
+                likes: '讚',
+                comments: '評論',
+                comment: '留言',
+                submitComment: '發表評論',
+                delete: '刪除',
+                edit: '編輯',
+                noPosts: '暫無文章',
+                firstRegisterAdmin: '第一位註冊的用戶將成為管理員'
+            },
+            en: {
+                navTitle: 'Hugo Development Log',
+                login: 'Login',
+                logout: 'Logout',
+                admin: 'Admin',
+                createPost: 'Create Post',
+                search: 'Search posts...',
+                allTags: 'All Tags',
+                allYears: 'All Years',
+                allMonths: 'All Months',
+                loading: 'Loading...',
+                loginTitle: 'Login',
+                registerTitle: 'Register',
+                username: 'Username',
+                email: 'Email',
+                password: 'Password',
+                noAccount: "Don't have an account? Register",
+                haveAccount: 'Already have an account? Login',
+                adminPanel: 'Admin Panel',
+                stats: 'Statistics',
+                users: 'User Management',
+                posts: 'Post Management',
+                logs: 'View Logs',
+                createPostTitle: 'Create Post',
+                editPostTitle: 'Edit Post',
+                title: 'Title',
+                content: 'Content',
+                tags: 'Tags (comma separated)',
+                publish: 'Publish',
+                update: 'Update',
+                views: 'Views',
+                likes: 'Likes',
+                comments: 'Comments',
+                comment: 'Comment',
+                submitComment: 'Submit Comment',
+                delete: 'Delete',
+                edit: 'Edit',
+                noPosts: 'No posts yet',
+                firstRegisterAdmin: 'First user to register becomes Admin'
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            checkAuth();
+            await loadTags();
+            await loadPosts();
+            setupEventListeners();
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            document.getElementById('langSwitch').addEventListener('click', toggleLanguage);
+            document.getElementById('loginBtn').addEventListener('click', () => openModal('authModal'));
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('adminBtn').addEventListener('click', showAdminPanel);
+            document.getElementById('createPostBtn').addEventListener('click', openCreatePost);
+            document.getElementById('homeLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                showMainView();
+            });
+            
+            document.getElementById('authToggle').addEventListener('click', toggleAuthMode);
+            document.getElementById('authForm').addEventListener('submit', handleAuth);
+            document.getElementById('createPostForm').addEventListener('submit', handleCreatePost);
+            
+            document.getElementById('searchInput').addEventListener('input', debounce(loadPosts, 500));
+            document.getElementById('tagFilter').addEventListener('change', loadPosts);
+            document.getElementById('yearFilter').addEventListener('change', loadPosts);
+            document.getElementById('monthFilter').addEventListener('change', loadPosts);
+
+            // Admin tabs
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    loadAdminContent(tab.dataset.tab);
+                });
+            });
+        }
+
+        // Authentication
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/verify`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.data.user;
+                    updateUIForUser();
+                } else {
+                    localStorage.removeItem('token');
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                localStorage.removeItem('token');
+            }
+        }
+
+        function updateUIForUser() {
+            document.getElementById('loginBtn').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+            
+            if (currentUser.is_admin) {
+                document.getElementById('adminBtn').classList.remove('hidden');
+                document.getElementById('createPostBtn').classList.remove('hidden');
+            }
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            const usernameGroup = document.getElementById('usernameGroup');
+            const authSubmit = document.getElementById('authSubmit');
+            const authToggle = document.getElementById('authToggle');
+            const authTitle = document.getElementById('authTitle');
+            
+            if (isLoginMode) {
+                usernameGroup.classList.add('hidden');
+                authTitle.textContent = t('loginTitle');
+                authSubmit.textContent = t('login');
+                authToggle.textContent = t('noAccount');
+            } else {
+                usernameGroup.classList.remove('hidden');
+                authTitle.textContent = t('registerTitle');
+                authSubmit.textContent = t('registerTitle');
+                authToggle.textContent = t('haveAccount');
+            }
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            
+            const endpoint = isLoginMode ? '/auth/login' : '/auth/register';
+            const body = isLoginMode ? { email, password } : { email, password, username };
+            
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.data.token);
+                    currentUser = data.data.user;
+                    updateUIForUser();
+                    closeModal('authModal');
+                    showMessage('authMessage', data.message, 'success');
+                    document.getElementById('authForm').reset();
+                    
+                    if (!isLoginMode) {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                } else {
+                    showMessage('authMessage', data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', 'Connection error: ' + error.message, 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            currentUser = null;
+            location.reload();
+        }
+
+        // Posts
+        async function loadPosts() {
+            const search = document.getElementById('searchInput').value;
+            const tag = document.getElementById('tagFilter').value;
+            const year = document.getElementById('yearFilter').value;
+            const month = document.getElementById('monthFilter').value;
+            
+            let url = `${API_URL}/posts?`;
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            if (tag) url += `tag=${encodeURIComponent(tag)}&`;
+            if (year) url += `year=${year}&`;
+            if (month) url += `month=${month}&`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentPosts = data.data;
+                    renderPosts(data.data);
+                    updateFilters(data.data);
+                }
+            } catch (error) {
+                document.getElementById('postsContainer').innerHTML = 
+                    `<div class="error-msg">Failed to load posts: ${error.message}</div>`;
+            }
+        }
+
+        function renderPosts(posts) {
+            const container = document.getElementById('postsContainer');
+            
+            if (posts.length === 0) {
+                container.innerHTML = `<div class="loading"><p>${t('noPosts')}</p></div>`;
+                return;
+            }
+            
+            const html = `<div class="posts-grid">
+                ${posts.map(post => `
+                    <div class="post-card" onclick="showPost(${post.id})">
+                        <h3 class="post-title">${escapeHtml(post.title)}</h3>
+                        <div class="post-meta">
+                            <span>👤 ${escapeHtml(post.author_name)}</span>
+                            <span>📅 ${formatDate(post.created_at)}</span>
+                        </div>
+                        <div class="post-excerpt">${truncate(stripHtml(post.content), 150)}</div>
+                        <div class="post-tags">
+                            ${post.tags.map(tag => `<span class="tag" onclick="filterByTag(event, '${escapeHtml(tag.name)}')">${escapeHtml(tag.name)}</span>`).join('')}
+                        </div>
+                        <div class="post-stats">
+                            <span>👁️ ${post.view_count} ${t('views')}</span>
+                            <span>❤️ ${post.like_count} ${t('likes')}</span>
+                            <span>💬 ${post.comment_count} ${t('comments')}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>`;
+            
+            container.innerHTML = html;
+        }
+
+        async function showPost(postId) {
+            try {
+                const response = await fetch(`${API_URL}/posts?id=${postId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const post = data.data;
+                    
+                    // Load comments
+                    const commentsResponse = await fetch(`${API_URL}/comments?post_id=${postId}`);
+                    const commentsData = await commentsResponse.json();
+                    const comments = commentsData.success ? commentsData.data : [];
+                    
+                    // Load like status
+                    const likesResponse = await fetch(`${API_URL}/likes?post_id=${postId}`, {
+                        headers: currentUser ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {}
+                    });
+                    const likesData = await likesResponse.json();
+                    const likeStatus = likesData.success ? likesData.data : { like_count: 0, liked: false };
+                    
+                    renderPostDetail(post, comments, likeStatus);
+                    openModal('postModal');
+                }
+            } catch (error) {
+                alert('Failed to load post: ' + error.message);
+            }
+        }
+
+        function renderPostDetail(post, comments, likeStatus) {
+            const canEdit = currentUser && currentUser.is_admin;
+            
+            const html = `
+                <div class="post-detail">
+                    <h2>${escapeHtml(post.title)}</h2>
+                    <div class="post-meta">
+                        <span>👤 ${escapeHtml(post.author_name)}</span>
+                        <span>📅 ${formatDate(post.created_at)}</span>
+                        <span>👁️ ${post.view_count} ${t('views')}</span>
+                    </div>
+                    <div class="post-tags" style="margin: 1rem 0;">
+                        ${post.tags.map(tag => `<span class="tag">${escapeHtml(tag.name)}</span>`).join('')}
+                    </div>
+                    ${canEdit ? `
+                        <div style="margin-bottom: 1rem;">
+                            <button class="btn" onclick="editPost(${post.id})">${t('edit')}</button>
+                            <button class="btn btn-secondary" onclick="deletePost(${post.id})">${t('delete')}</button>
+                        </div>
+                    ` : ''}
+                    <div class="post-content" style="margin: 2rem 0; line-height: 1.8;">
+                        ${post.content}
+                    </div>
+                    <div style="margin: 2rem 0;">
+                        <span class="like-btn ${likeStatus.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})" style="font-size: 1.2rem;">
+                            ❤️ ${likeStatus.like_count} ${t('likes')}
+                        </span>
+                    </div>
+                    <div class="comments-section">
+                        <h3>${t('comments')} (${comments.length})</h3>
+                        ${currentUser ? `
+                            <form onsubmit="submitComment(event, ${post.id})" style="margin: 1rem 0;">
+                                <textarea id="commentContent" placeholder="${t('comment')}..." required></textarea>
+                                <button type="submit" class="btn" style="margin-top: 0.5rem;">${t('submitComment')}</button>
+                            </form>
+                        ` : `<p style="color: var(--gray); margin: 1rem 0;">${t('login')} to comment</p>`}
+                        <div id="commentsList">
+                            ${comments.map(comment => `
+                                <div class="comment">
+                                    <div class="comment-header">
+                                        <span class="comment-author">${escapeHtml(comment.username)}</span>
+                                        <span>${formatDate(comment.created_at)}</span>
+                                    </div>
+                                    <div>${escapeHtml(comment.content)}</div>
+                                    ${currentUser && (currentUser.id === comment.user_id || currentUser.is_admin) ? `
+                                        <button class="btn btn-secondary" onclick="deleteComment(${comment.id}, ${post.id})" style="margin-top: 0.5rem; padding: 0.3rem 0.6rem; font-size: 0.8rem;">${t('delete')}</button>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('postDetail').innerHTML = html;
+        }
+
+        async function toggleLike(postId) {
+            if (!currentUser) {
+                alert('Please login to like posts');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/likes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ post_id: postId })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showPost(postId); // Reload post to update like status
+                }
+            } catch (error) {
+                alert('Failed to toggle like: ' + error.message);
+            }
+        }
+
+        async function submitComment(e, postId) {
+            e.preventDefault();
+            
+            const content = document.getElementById('commentContent').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ post_id: postId, content })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('commentContent').value = '';
+                    showPost(postId); // Reload post to show new comment
+                }
+            } catch (error) {
+                alert('Failed to submit comment: ' + error.message);
+            }
+        }
+
+        async function deleteComment(commentId, postId) {
+            if (!confirm('Delete this comment?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/comments?id=${commentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showPost(postId); // Reload post
+                }
+            } catch (error) {
+                alert('Failed to delete comment: ' + error.message);
+            }
+        }
+
+        // Create/Edit Post
+        function openCreatePost() {
+            document.getElementById('editPostId').value = '';
+            document.getElementById('createPostTitle').textContent = t('createPostTitle');
+            document.getElementById('submitPost').textContent = t('publish');
+            document.getElementById('createPostForm').reset();
+            openModal('createPostModal');
+        }
+
+        async function editPost(postId) {
+            const post = currentPosts.find(p => p.id === postId);
+            if (!post) {
+                // Fetch post if not in current list
+                const response = await fetch(`${API_URL}/posts?id=${postId}`);
+                const data = await response.json();
+                if (!data.success) return;
+                post = data.data;
+            }
+            
+            document.getElementById('editPostId').value = post.id;
+            document.getElementById('postTitle').value = post.title;
+            document.getElementById('postContent').value = stripHtml(post.content);
+            document.getElementById('postTags').value = post.tags.map(t => t.name).join(', ');
+            document.getElementById('createPostTitle').textContent = t('editPostTitle');
+            document.getElementById('submitPost').textContent = t('update');
+            
+            closeModal('postModal');
+            openModal('createPostModal');
+        }
+
+        async function handleCreatePost(e) {
+            e.preventDefault();
+            
+            const postId = document.getElementById('editPostId').value;
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            const tags = document.getElementById('postTags').value.split(',').map(t => t.trim()).filter(t => t);
+            
+            const method = postId ? 'PUT' : 'POST';
+            const body = postId ? 
+                { id: parseInt(postId), title, content, tags } : 
+                { title, content, tags };
+            
+            try {
+                const response = await fetch(`${API_URL}/posts`, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('createPostMessage', data.message, 'success');
+                    setTimeout(() => {
+                        closeModal('createPostModal');
+                        loadPosts();
+                        loadTags();
+                    }, 1000);
+                } else {
+                    showMessage('createPostMessage', data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('createPostMessage', 'Failed to save post: ' + error.message, 'error');
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Delete this post?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/posts?id=${postId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    closeModal('postModal');
+                    loadPosts();
+                }
+            } catch (error) {
+                alert('Failed to delete post: ' + error.message);
+            }
+        }
+
+        // Tags
+        async function loadTags() {
+            try {
+                const response = await fetch(`${API_URL}/tags`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allTags = data.data;
+                    const select = document.getElementById('tagFilter');
+                    select.innerHTML = `<option value="">${t('allTags')}</option>` + 
+                        data.data.map(tag => `<option value="${escapeHtml(tag.name)}">${escapeHtml(tag.name)} (${tag.post_count})</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load tags:', error);
+            }
+        }
+
+        function filterByTag(e, tagName) {
+            e.stopPropagation();
+            document.getElementById('tagFilter').value = tagName;
+            loadPosts();
+        }
+
+        // Admin Panel
+        function showAdminPanel() {
+            document.getElementById('mainView').classList.add('hidden');
+            document.getElementById('adminView').classList.remove('hidden');
+            loadAdminContent('stats');
+        }
+
+        function showMainView() {
+            document.getElementById('mainView').classList.remove('hidden');
+            document.getElementById('adminView').classList.add('hidden');
+        }
+
+        async function loadAdminContent(tab) {
+            const content = document.getElementById('adminContent');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                if (tab === 'stats') {
+                    const response = await fetch(`${API_URL}/admin/stats`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        content.innerHTML = `
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                                <div class="post-card"><h3>${data.data.total_users}</h3><p>Total Users</p></div>
+                                <div class="post-card"><h3>${data.data.total_posts}</h3><p>Total Posts</p></div>
+                                <div class="post-card"><h3>${data.data.total_comments}</h3><p>Total Comments</p></div>
+                                <div class="post-card"><h3>${data.data.total_likes}</h3><p>Total Likes</p></div>
+                                <div class="post-card"><h3>${data.data.total_views}</h3><p>Total Views</p></div>
+                            </div>
+                            <h3>Most Viewed Posts</h3>
+                            <table>
+                                <thead><tr><th>Title</th><th>Views</th></tr></thead>
+                                <tbody>
+                                    ${data.data.most_viewed_posts.map(p => `<tr><td>${escapeHtml(p.title)}</td><td>${p.view_count}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                            <h3 style="margin-top: 2rem;">Most Liked Posts</h3>
+                            <table>
+                                <thead><tr><th>Title</th><th>Likes</th></tr></thead>
+                                <tbody>
+                                    ${data.data.most_liked_posts.map(p => `<tr><td>${escapeHtml(p.title)}</td><td>${p.like_count}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    }
+                } else if (tab === 'users') {
+                    const response = await fetch(`${API_URL}/admin/users`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        content.innerHTML = `
+                            <table>
+                                <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Admin</th><th>Created</th><th>Actions</th></tr></thead>
+                                <tbody>
+                                    ${data.data.map(user => `
+                                        <tr>
+                                            <td>${user.id}</td>
+                                            <td>${escapeHtml(user.username)}</td>
+                                            <td>${escapeHtml(user.email)}</td>
+                                            <td>${user.is_admin ? '✓' : ''}</td>
+                                            <td>${formatDate(user.created_at)}</td>
+                                            <td>
+                                                ${user.id !== currentUser.id ? `<button class="btn btn-secondary" onclick="deleteUser(${user.id})" style="padding: 0.3rem 0.6rem;">Delete</button>` : ''}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    }
+                } else if (tab === 'posts') {
+                    await loadPosts();
+                    content.innerHTML = `
+                        <table>
+                            <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Views</th><th>Likes</th><th>Comments</th><th>Created</th><th>Actions</th></tr></thead>
+                            <tbody>
+                                ${currentPosts.map(post => `
+                                    <tr>
+                                        <td>${post.id}</td>
+                                        <td>${escapeHtml(post.title)}</td>
+                                        <td>${escapeHtml(post.author_name)}</td>
+                                        <td>${post.view_count}</td>
+                                        <td>${post.like_count}</td>
+                                        <td>${post.comment_count}</td>
+                                        <td>${formatDate(post.created_at)}</td>
+                                        <td>
+                                            <button class="btn" onclick="editPost(${post.id})" style="padding: 0.3rem 0.6rem; margin-right: 0.5rem;">Edit</button>
+                                            <button class="btn btn-secondary" onclick="deletePost(${post.id})" style="padding: 0.3rem 0.6rem;">Delete</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else if (tab === 'logs') {
+                    const response = await fetch(`${API_URL}/admin/view-logs`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        content.innerHTML = `
+                            <table>
+                                <thead><tr><th>Post</th><th>User</th><th>IP</th><th>Viewed At</th></tr></thead>
+                                <tbody>
+                                    ${data.data.map(log => `
+                                        <tr>
+                                            <td>${escapeHtml(log.post_title)}</td>
+                                            <td>${log.username ? escapeHtml(log.username) : 'Guest'}</td>
+                                            <td>${log.ip_address || 'N/A'}</td>
+                                            <td>${formatDate(log.viewed_at)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    }
+                }
+            } catch (error) {
+                content.innerHTML = `<div class="error-msg">Failed to load: ${error.message}</div>`;
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Delete this user? All their data will be removed.')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/users?id=${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    loadAdminContent('users');
+                }
+            } catch (error) {
+                alert('Failed to delete user: ' + error.message);
+            }
+        }
+
+        // Utility Functions
+        function updateFilters(posts) {
+            const years = [...new Set(posts.map(p => new Date(p.created_at).getFullYear()))].sort((a, b) => b - a);
+            const yearSelect = document.getElementById('yearFilter');
+            yearSelect.innerHTML = `<option value="">${t('allYears')}</option>` + 
+                years.map(year => `<option value="${year}">${year}</option>`).join('');
+            
+            const months = [
+                { value: 1, name: currentLang === 'zh' ? '一月' : 'January' },
+                { value: 2, name: currentLang === 'zh' ? '二月' : 'February' },
+                { value: 3, name: currentLang === 'zh' ? '三月' : 'March' },
+                { value: 4, name: currentLang === 'zh' ? '四月' : 'April' },
+                { value: 5, name: currentLang === 'zh' ? '五月' : 'May' },
+                { value: 6, name: currentLang === 'zh' ? '六月' : 'June' },
+                { value: 7, name: currentLang === 'zh' ? '七月' : 'July' },
+                { value: 8, name: currentLang === 'zh' ? '八月' : 'August' },
+                { value: 9, name: currentLang === 'zh' ? '九月' : 'September' },
+                { value: 10, name: currentLang === 'zh' ? '十月' : 'October' },
+                { value: 11, name: currentLang === 'zh' ? '十一月' : 'November' },
+                { value: 12, name: currentLang === 'zh' ? '十二月' : 'December' }
+            ];
+            
+            const monthSelect = document.getElementById('monthFilter');
+            monthSelect.innerHTML = `<option value="">${t('allMonths')}</option>` + 
+                months.map(m => `<option value="${m.value}">${m.name}</option>`).join('');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            // Update all translatable elements
+            document.getElementById('navTitle').textContent = t('navTitle');
+            document.getElementById('loginBtn').textContent = t('login');
+            document.getElementById('logoutBtn').textContent = t('logout');
+            document.getElementById('adminBtn').textContent = t('admin');
+            document.getElementById('createPostBtn').textContent = t('createPost');
+            document.getElementById('searchInput').placeholder = t('search');
+            document.getElementById('adminTitle').textContent = t('adminPanel');
+            
+            // Reload filters and posts to update language
+            loadTags();
+            loadPosts();
+        }
+
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.className = type === 'success' ? 'success-msg' : 'error-msg';
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => element.style.display = 'none', 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function stripHtml(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            return div.textContent || div.innerText || '';
+        }
+
+        function truncate(text, length) {
+            return text.length > length ? text.substring(0, length) + '...' : text;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString(currentLang === 'zh' ? 'zh-HK' : 'en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
