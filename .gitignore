@@ -1,0 +1,38 @@
+# Ignore common development files
+.DS_Store
+Thumbs.db
+*.log
+
+# Ignore editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore temporary files
+tmp/
+temp/
+*.tmp
+
+# Ignore backup files
+*.bak
+*.backup
+backup/
+
+# Ignore sensitive configuration (if any)
+# Note: Our config.php is meant to be deployed
+# config.local.php
+
+# Ignore database dumps
+*.sql.gz
+backup*.sql
+
+# Ignore node_modules (if you ever add npm)
+node_modules/
+
+# Ignore composer dependencies (if you ever add composer)
+vendor/
+
+# Keep these files
+!backend/database.sql
