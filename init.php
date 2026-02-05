@@ -2,9 +2,16 @@
 /**
  * Hugo 開發日誌 Database Initialization
  * Run this file once to set up the database tables
+ * 
+ * SECURITY NOTE: This file contains hardcoded database credentials for a demo/development
+ * InfinityFree hosting account. In a production environment:
+ * 1. Move credentials to environment variables
+ * 2. Use getenv() to read DB_HOST, DB_USER, DB_PASS, DB_NAME
+ * 3. Delete or protect this file after database initialization
  */
 
 // Database Configuration
+// TODO: Move these to environment variables in production
 define('DB_HOST', 'sql201.infinityfree.com');
 define('DB_USER', 'if0_39929369');
 define('DB_PASS', 'hfy23whc');
@@ -141,10 +148,11 @@ try {
     
     foreach ($tableNames as $table) {
         try {
-            $stmt = $conn->query("SHOW TABLES LIKE '$table'");
+            $stmt = $conn->prepare("SHOW TABLES LIKE ?");
+            $stmt->execute([$table]);
             if ($stmt->rowCount() > 0) {
-                // Get row count
-                $countStmt = $conn->query("SELECT COUNT(*) as count FROM $table");
+                // Get row count - table name is from controlled array, safe to use
+                $countStmt = $conn->query("SELECT COUNT(*) as count FROM `$table`");
                 $count = $countStmt->fetch()['count'];
                 echo "<li style='color: green;'>✓ Table <strong>$table</strong> exists (contains $count rows)</li>";
             } else {

@@ -3,9 +3,17 @@
  * Hugo 開發日誌 API
  * Consolidated API endpoint handler
  * All-in-one API file for blog platform
+ * 
+ * SECURITY NOTE: This file contains hardcoded database credentials for a demo/development
+ * InfinityFree hosting account. In a production environment:
+ * 1. Move credentials to environment variables
+ * 2. Use getenv() to read DB_HOST, DB_USER, DB_PASS, DB_NAME
+ * 3. Generate a cryptographically secure random JWT_SECRET
+ * 4. Never commit credentials to version control
  */
 
 // Database Configuration
+// TODO: Move these to environment variables in production
 define('DB_HOST', 'sql201.infinityfree.com');
 define('DB_USER', 'if0_39929369');
 define('DB_PASS', 'hfy23whc');
@@ -24,6 +32,8 @@ $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
 if (in_array($origin, $allowedOrigins)) {
     header('Access-Control-Allow-Origin: ' . $origin);
 } else {
+    // In production, remove this fallback or restrict to specific domains
+    // For development/demo purposes only
     header('Access-Control-Allow-Origin: *');
 }
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -392,7 +402,8 @@ if ($method === 'POST' && strpos($path, 'posts') !== false) {
     
     try {
         $title = htmlspecialchars($input['title']);
-        $content = strip_tags($input['content'], '<p><br><b><strong><i><em><u><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><a>');
+        // Sanitize content - allow only safe HTML tags, strip <a> to prevent XSS via javascript: URLs
+        $content = strip_tags($input['content'], '<p><br><b><strong><i><em><u><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre>');
         $status = isset($input['status']) ? $input['status'] : 'published';
         $tags = isset($input['tags']) ? $input['tags'] : [];
         
@@ -457,7 +468,8 @@ if ($method === 'PUT' && strpos($path, 'posts') !== false) {
         
         if (isset($input['content'])) {
             $updates[] = "content = ?";
-            $params[] = strip_tags($input['content'], '<p><br><b><strong><i><em><u><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><a>');
+            // Sanitize content - allow only safe HTML tags, strip <a> to prevent XSS via javascript: URLs
+            $params[] = strip_tags($input['content'], '<p><br><b><strong><i><em><u><ul><ol><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre>');
         }
         
         if (isset($input['status'])) {
